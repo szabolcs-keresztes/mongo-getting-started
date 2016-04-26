@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GettingStartedWithMongoDbDriver
@@ -10,8 +10,93 @@ namespace GettingStartedWithMongoDbDriver
     {
         static void Main(string[] args)
         {
-            Console.WriteLine(
-                "This is going to be a project to get started with MongoDb Driver.");
+            var mongoClient = CreateMongoClient();
+
+            var mongoDbProvider = new MongoDbProvider(mongoClient.GetDatabase("asyncTest"));
+
+            const int numberOfInserts = 2;
+            var doc = CreateRestaurant();
+            for (int i = 0; i < numberOfInserts; i++)
+            {
+                mongoDbProvider.InsertOne("restaurants", doc);
+            }
+
+            //mongoDbProvider.InsertMultipeTimes("restaurants", CreateRestaurant(), 100);
+
+            //Task.Run(async () =>
+            //{
+            //    for (int i = 0; i < 100; i++)
+            //    {
+            //        int numberOfDocuments = await mongoDbProvider.CountDocuments("restaurants");
+            //        Console.WriteLine(numberOfDocuments + " documents counted");
+            //    }
+            //}).Wait();
+
+            Thread.Sleep(1000);
+
+        }
+
+        protected static void GettingStarted()
+        {
+            var mongoClient = CreateMongoClient();
+
+            var mongoDbProvider = new MongoDbProvider(mongoClient.GetDatabase("test"));
+
+            mongoDbProvider.InsertOne("restaurants", CreateRestaurant());
+
+            Task.Run(async () =>
+            {
+                int numberOfDocuments = await mongoDbProvider.CountDocuments("restaurants");
+                Console.WriteLine(numberOfDocuments + " documents counted");
+            }).Wait();
+        }
+
+        protected static IMongoClient CreateMongoClient()
+        {
+            var mongoClient = new MongoClient();
+            if (mongoClient == null)
+            {
+                Console.WriteLine("The connection has not been created...");
+            }
+            Console.WriteLine("The connection with the local mongod has been created...");
+            return mongoClient;
+        }
+
+
+
+        protected static BsonDocument CreateRestaurant()
+        {
+            return new BsonDocument
+            {
+                { "address" , new BsonDocument
+                    {
+                        { "street", "2 Avenue" },
+                        { "zipcode", "10075" },
+                        { "building", "1480" },
+                        { "coord", new BsonArray { 73.9557413, 40.7720266 } }
+                    }
+                },
+                { "borough", "Manhattan" },
+                { "cuisine", "Italian" },
+                { "grades", new BsonArray
+                    {
+                        new BsonDocument
+                        {
+                            { "date", new DateTime(2014, 10, 1, 0, 0, 0, DateTimeKind.Utc) },
+                            { "grade", "A" },
+                            { "score", 11 }
+                        },
+                        new BsonDocument
+                        {
+                            { "date", new DateTime(2014, 1, 6, 0, 0, 0, DateTimeKind.Utc) },
+                            { "grade", "B" },
+                            { "score", 17 }
+                        }
+                    }
+                },
+                { "name", "Vella" },
+                { "restaurant_id", "41704620" }
+            };
         }
     }
 }
