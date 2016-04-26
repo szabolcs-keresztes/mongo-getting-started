@@ -14,26 +14,25 @@ namespace GettingStartedWithMongoDbDriver
 
             var mongoDbProvider = new MongoDbProvider(mongoClient.GetDatabase("asyncTest"));
 
-            const int numberOfInserts = 2;
-            var doc = CreateRestaurant();
+            const int numberOfInserts = 400;
             for (int i = 0; i < numberOfInserts; i++)
             {
+                var doc = CreateRestaurant();
                 mongoDbProvider.InsertOne("restaurants", doc);
             }
 
-            //mongoDbProvider.InsertMultipeTimes("restaurants", CreateRestaurant(), 100);
+            Task.Run(async () =>
+            {
+                for (int i = 0; i < 100; i++)
+                {
+                    long numberOfDocuments = await mongoDbProvider.CountDocuments("restaurants");
+                    Console.WriteLine(numberOfDocuments + " documents counted");
+                }
+            }).Wait();
 
-            //Task.Run(async () =>
-            //{
-            //    for (int i = 0; i < 100; i++)
-            //    {
-            //        int numberOfDocuments = await mongoDbProvider.CountDocuments("restaurants");
-            //        Console.WriteLine(numberOfDocuments + " documents counted");
-            //    }
-            //}).Wait();
+            mongoDbProvider.DeleteMany("restaurants", new BsonDocument { { "borough", "Manhattan" } });
 
             Thread.Sleep(1000);
-
         }
 
         protected static void GettingStarted()
@@ -46,7 +45,7 @@ namespace GettingStartedWithMongoDbDriver
 
             Task.Run(async () =>
             {
-                int numberOfDocuments = await mongoDbProvider.CountDocuments("restaurants");
+                long numberOfDocuments = await mongoDbProvider.CountDocuments("restaurants");
                 Console.WriteLine(numberOfDocuments + " documents counted");
             }).Wait();
         }
@@ -94,8 +93,7 @@ namespace GettingStartedWithMongoDbDriver
                         }
                     }
                 },
-                { "name", "Vella" },
-                { "restaurant_id", "41704620" }
+                { "name", "Vella" }
             };
         }
     }

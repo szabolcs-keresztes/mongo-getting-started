@@ -10,6 +10,8 @@ namespace GettingStartedWithMongoDbDriver
 
         void DeleteMany(string collectionName, BsonDocument filter);
 
-        Task<int> CountDocuments(string collectionName);
+        Task<int> CountDocumentsManually(string collectionName);
+        Task<long> CountDocuments(string collectionName);
+
     }
 }

@@ -26,7 +26,7 @@ namespace GettingStartedWithMongoDbDriver
         /// A protected instance of the mongo database
         /// </summary>
         protected IMongoDatabase _database;
-
+        
         /// <summary>
         /// Insert one document to the specified collection
         /// </summary>
@@ -70,7 +70,7 @@ namespace GettingStartedWithMongoDbDriver
         /// </summary>
         /// <param name="collectionName">Name of the collection</param>
         /// <returns>Number of documents</returns>
-        public async Task<int> CountDocuments(string collectionName)
+        public async Task<int> CountDocumentsManually(string collectionName)
         {
             var collection = this._database.GetCollection<BsonDocument>(collectionName);
             var count = 0;
@@ -86,6 +86,12 @@ namespace GettingStartedWithMongoDbDriver
                 }
             }
             return count;
+        }
+
+        public async Task<long> CountDocuments(string collectionName)
+        {
+            var collection = this._database.GetCollection<BsonDocument>(collectionName);
+            return await collection.CountAsync(new BsonDocument());
         }
 
     }
