@@ -6,16 +6,17 @@ using System.Threading.Tasks;
 
 namespace GettingStartedWithMongoDbDriver
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var mongoClient = CreateMongoClient();
 
-            var mongoDbProvider = new MongoDbProvider(mongoClient.GetDatabase("asyncTest"));
+            var mongoDbProvider = new MongoDbProvider(
+                mongoClient.GetDatabase("asyncTest"));
 
             const int numberOfInserts = 400;
-            for (int i = 0; i < numberOfInserts; i++)
+            for (var i = 0; i < numberOfInserts; i++)
             {
                 var doc = CreateRestaurant();
                 mongoDbProvider.InsertOne("restaurants", doc);
@@ -23,14 +24,17 @@ namespace GettingStartedWithMongoDbDriver
 
             Task.Run(async () =>
             {
-                for (int i = 0; i < 100; i++)
+                const int numberOfCounts = 100;
+                for (var i = 0; i < numberOfCounts; i++)
                 {
-                    long numberOfDocuments = await mongoDbProvider.CountDocuments("restaurants");
+                    var numberOfDocuments = await mongoDbProvider
+                                                    .CountDocuments("restaurants");
                     Console.WriteLine(numberOfDocuments + " documents counted");
                 }
             }).Wait();
 
-            mongoDbProvider.DeleteMany("restaurants", new BsonDocument { { "borough", "Manhattan" } });
+            mongoDbProvider.DeleteMany("restaurants", 
+                new BsonDocument { { "borough", "Manhattan" } });
 
             Thread.Sleep(1000);
         }
@@ -39,13 +43,15 @@ namespace GettingStartedWithMongoDbDriver
         {
             var mongoClient = CreateMongoClient();
 
-            var mongoDbProvider = new MongoDbProvider(mongoClient.GetDatabase("test"));
+            var mongoDbProvider = new MongoDbProvider(
+                mongoClient.GetDatabase("test"));
 
             mongoDbProvider.InsertOne("restaurants", CreateRestaurant());
 
             Task.Run(async () =>
             {
-                long numberOfDocuments = await mongoDbProvider.CountDocuments("restaurants");
+                var numberOfDocuments = await mongoDbProvider
+                                                .CountDocuments("restaurants");
                 Console.WriteLine(numberOfDocuments + " documents counted");
             }).Wait();
         }
@@ -53,10 +59,6 @@ namespace GettingStartedWithMongoDbDriver
         protected static IMongoClient CreateMongoClient()
         {
             var mongoClient = new MongoClient();
-            if (mongoClient == null)
-            {
-                Console.WriteLine("The connection has not been created...");
-            }
             Console.WriteLine("The connection with the local mongod has been created...");
             return mongoClient;
         }

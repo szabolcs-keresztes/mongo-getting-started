@@ -1,6 +1,7 @@
 ﻿using MongoDB.Driver;
 using MongoDB.Bson;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace GettingStartedWithMongoDbDriver
@@ -18,14 +19,14 @@ namespace GettingStartedWithMongoDbDriver
                 throw new ArgumentNullException(nameof(database));
             }
 
-            this._database = database;
+            this.Database = database;
             Console.WriteLine("We are using the 'test' database...");
         }
 
         /// <summary>
         /// A protected instance of the mongo database
         /// </summary>
-        protected IMongoDatabase _database;
+        protected IMongoDatabase Database { get; }
         
         /// <summary>
         /// Insert one document to the specified collection
@@ -34,7 +35,7 @@ namespace GettingStartedWithMongoDbDriver
         /// <param name="document">The Bson Document</param>
         public async void InsertOne(string collectionName, BsonDocument document)
         {
-            var collection = this._database.GetCollection<BsonDocument>(collectionName);
+            var collection = this.Database.GetCollection<BsonDocument>(collectionName);
             await collection.InsertOneAsync(document);
         }
 
@@ -47,8 +48,8 @@ namespace GettingStartedWithMongoDbDriver
         public async void InsertMultipeTimes(string collectionName, BsonDocument document,
             int times)
         {
-            var collection = this._database.GetCollection<BsonDocument>(collectionName);
-            for (int i = 0; i < times; i++)
+            var collection = this.Database.GetCollection<BsonDocument>(collectionName);
+            for (var i = 0; i < times; i++)
             {
                 await collection.InsertOneAsync(document);
             }
@@ -61,8 +62,8 @@ namespace GettingStartedWithMongoDbDriver
         /// <param name="filter">Deltion filter</param>
         public async void DeleteMany(string collectionName, BsonDocument filter)
         {
-            var collection = this._database.GetCollection<BsonDocument>(collectionName);
-            var result = await collection.DeleteManyAsync(filter);
+            var collection = this.Database.GetCollection<BsonDocument>(collectionName);
+            await collection.DeleteManyAsync(filter);
         }
 
         /// <summary>
@@ -72,17 +73,14 @@ namespace GettingStartedWithMongoDbDriver
         /// <returns>Number of documents</returns>
         public async Task<int> CountDocumentsManually(string collectionName)
         {
-            var collection = this._database.GetCollection<BsonDocument>(collectionName);
+            var collection = this.Database.GetCollection<BsonDocument>(collectionName);
             var count = 0;
             using (var cursor = await collection.FindAsync(new BsonDocument()))
             {
                 while (await cursor.MoveNextAsync())
                 {
                     var batch = cursor.Current;
-                    foreach (var document in batch)
-                    {
-                        ++count;
-                    }
+                    count += batch.Count();
                 }
             }
             return count;
@@ -90,7 +88,7 @@ namespace GettingStartedWithMongoDbDriver
 
         public async Task<long> CountDocuments(string collectionName)
         {
-            var collection = this._database.GetCollection<BsonDocument>(collectionName);
+            var collection = this.Database.GetCollection<BsonDocument>(collectionName);
             return await collection.CountAsync(new BsonDocument());
         }
 
